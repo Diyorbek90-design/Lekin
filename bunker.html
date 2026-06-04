@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a0f">
+<title>BUNKER</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --card: #1a1a26;
+    --border: #2a2a3a;
+    --red: #e63946;
+    --orange: #f4a261;
+    --green: #2a9d8f;
+    --yellow: #e9c46a;
+    --blue: #4361ee;
+    --purple: #7b2d8b;
+    --text: #e8e8f0;
+    --muted: #6b6b8a;
+    --glow: rgba(230,57,70,0.3);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse at 20% 50%, rgba(230,57,70,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(67,97,238,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 60% 80%, rgba(42,157,143,0.05) 0%, transparent 50%);
+    z-index: 0;
+    pointer-events: none;
+    animation: breathe 8s ease-in-out infinite;
+  }
+  @keyframes breathe { 0%,100% { opacity:0.7; } 50% { opacity:1; } }
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(230,57,70,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(230,57,70,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .screen { position:relative; z-index:1; display:none; min-height:100vh; padding:20px; animation:fadeIn 0.4s ease; }
+  .screen.active { display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+  .logo-wrap { text-align:center; margin-bottom:50px; }
+  .bunker-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(72px, 20vw, 120px);
+    letter-spacing: 12px;
+    line-height: 0.9;
+    color: #fff;
+    text-shadow: 0 0 40px rgba(230,57,70,0.8), 0 0 80px rgba(230,57,70,0.4), 0 0 120px rgba(230,57,70,0.2);
+    animation: flicker 4s infinite;
+  }
+  @keyframes flicker { 0%,95%,100% { opacity:1; } 96% { opacity:0.8; } 97% { opacity:1; } 98% { opacity:0.6; } 99% { opacity:1; } }
+  .bunker-sub { font-family:'Share Tech Mono',monospace; font-size:11px; letter-spacing:6px; color:var(--red); margin-top:8px; text-transform:uppercase; }
+  .warning-badge {
+    display:inline-flex; align-items:center; gap:8px;
+    background:rgba(230,57,70,0.1); border:1px solid rgba(230,57,70,0.3);
+    border-radius:4px; padding:8px 16px; margin:20px 0 40px;
+    font-family:'Share Tech Mono',monospace; font-size:10px; letter-spacing:2px; color:var(--red);
+    animation:blink 2s step-end infinite;
+  }
+  @keyframes blink { 0%,100% { border-color:rgba(230,57,70,0.3); } 50% { border-color:rgba(230,57,70,0.8); } }
+  .player-input-wrap { width:100%; max-width:340px; }
+  .input-label { font-family:'Share Tech Mono',monospace; font-size:10px; letter-spacing:3px; color:var(--muted); margin-bottom:12px; text-align:center; }
+  .player-count-display { text-align:center; margin-bottom:20px; }
+  .count-num { font-family:'Bebas Neue',sans-serif; font-size:80px; color:var(--red); line-height:1; text-shadow:0 0 30px rgba(230,57,70,0.6); }
+  .count-controls { display:flex; align-items:center; justify-content:center; gap:20px; margin-bottom:30px; }
+  .count-btn {
+    width:56px; height:56px; border-radius:50%; border:2px solid var(--border);
+    background:var(--card); color:var(--text); font-size:28px;
+    font-family:'Bebas Neue',sans-serif; cursor:pointer; transition:all 0.2s;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .count-btn:active { transform:scale(0.9); border-color:var(--red); color:var(--red); }
+  .slider-wrap { padding:0 10px; }
+  input[type=range] { width:100%; -webkit-appearance:none; height:4px; background:var(--border); border-radius:2px; outline:none; margin-bottom:30px; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:24px; height:24px; border-radius:50%; background:var(--red); box-shadow:0 0 12px rgba(230,57,70,0.6); cursor:pointer; }
+  .btn-start {
+    width:100%; padding:18px; background:var(--red); border:none; border-radius:8px;
+    color:#fff; font-family:'Bebas Neue',sans-serif; font-size:22px; letter-spacing:4px;
+    cursor:pointer; position:relative; overflow:hidden; transition:all 0.2s;
+    box-shadow:0 0 30px rgba(230,57,70,0.4);
+  }
+  .btn-start::before {
+    content:''; position:absolute; top:-50%; left:-60%; width:40%; height:200%;
+    background:rgba(255,255,255,0.15); transform:skewX(-20deg); animation:shine 3s infinite;
+  }
+  @keyframes shine { 0% { left:-60%; } 100% { left:160%; } }
+  .btn-start:active { transform:scale(0.97); }
+  .cat-header { text-align:center; margin-bottom:30px; width:100%; max-width:400px; }
+  .cat-step { font-family:'Share Tech Mono',monospace; font-size:10px; letter-spacing:3px; color:var(--muted); margin-bottom:8px; }
+  .cat-title { font-family:'Bebas Neue',sans-serif; font-size:42px; letter-spacing:4px; color:var(--text); }
+  .progress-bar { width:100%; height:3px; background:var(--border); border-radius:2px; margin-top:16px; overflow:hidden; }
+  .progress-fill { height:100%; background:var(--red); border-radius:2px; transition:width 0.5s ease; box-shadow:0 0 8px var(--red); }
+  .categories-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; width:100%; max-width:400px; }
+  .cat-btn {
+    padding:20px 16px; border-radius:10px; border:1px solid var(--border);
+    background:var(--card); cursor:pointer; transition:all 0.25s; text-align:left; position:relative; overflow:hidden;
+  }
+  .cat-btn.completed { border-color:rgba(42,157,143,0.5); background:rgba(42,157,143,0.08); }
+  .cat-btn.active-cat { border-color:var(--red); background:rgba(230,57,70,0.1); box-shadow:0 0 20px rgba(230,57,70,0.2); }
+  .cat-btn-emoji { font-size:24px; margin-bottom:6px; display:block; }
+  .cat-btn-name { font-family:'Rajdhani',sans-serif; font-weight:700; font-size:13px; letter-spacing:1px; color:var(--text); display:block; }
+  .cat-btn-status { font-family:'Share Tech Mono',monospace; font-size:9px; color:var(--muted); display:block; margin-top:4px; }
+  .cat-btn.completed .cat-btn-status { color:var(--green); }
+  .cat-btn.active-cat .cat-btn-status { color:var(--red); }
+  .checkmark { position:absolute; top:10px; right:10px; width:20px; height:20px; border-radius:50%; background:var(--green); display:flex; align-items:center; justify-content:center; font-size:11px; color:white; }
+  .reveal-wrap { width:100%; max-width:380px; display:flex; flex-direction:column; align-items:center; }
+  .reveal-header { text-align:center; margin-bottom:24px; width:100%; }
+  .reveal-cat { font-family:'Share Tech Mono',monospace; font-size:10px; letter-spacing:4px; color:var(--red); margin-bottom:4px; }
+  .reveal-player-label { font-family:'Bebas Neue',sans-serif; font-size:32px; letter-spacing:2px; color:var(--text); }
+  .big-card {
+    width:100%; min-height:220px; border-radius:16px; border:1px solid var(--border);
+    background:var(--card); display:flex; flex-direction:column; align-items:center;
+    justify-content:center; padding:30px 24px; margin-bottom:20px;
+    position:relative; overflow:hidden; cursor:pointer; transition:all 0.3s;
+  }
+  .big-card::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,0.02) 0%,transparent 60%); pointer-events:none; }
+  .big-card.revealed { border-color:var(--red); box-shadow:0 0 40px rgba(230,57,70,0.2),inset 0 0 40px rgba(230,57,70,0.05); animation:cardReveal 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+  @keyframes cardReveal { 0% { transform:scale(0.8) rotateY(90deg); opacity:0; } 100% { transform:scale(1) rotateY(0deg); opacity:1; } }
+  .card-tap-hint { font-family:'Share Tech Mono',monospace; font-size:11px; letter-spacing:3px; color:var(--muted); animation:pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity:0.5; } 50% { opacity:1; } }
+  .card-lock-icon { font-size:40px; margin-bottom:12px; display:block; }
+  .card-revealed-emoji { font-size:48px; margin-bottom:16px; display:block; animation:bounceIn 0.4s 0.2s both; }
+  @keyframes bounceIn { 0% { transform:scale(0); } 70% { transform:scale(1.2); } 100% { transform:scale(1); } }
+  .card-value { font-family:'Rajdhani',sans-serif; font-weight:700; font-size:22px; text-align:center; color:#fff; line-height:1.3; animation:slideUp 0.4s 0.3s both; }
+  @keyframes slideUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+  .players-queue { width:100%; display:flex; gap:8px; margin-bottom:20px; overflow-x:auto; padding:4px 0; scrollbar-width:none; }
+  .players-queue::-webkit-scrollbar { display:none; }
+  .player-chip { flex-shrink:0; padding:8px 16px; border-radius:20px; border:1px solid var(--border); background:var(--card); font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--muted); transition:all 0.3s; }
+  .player-chip.current { border-color:var(--red); background:rgba(230,57,70,0.15); color:var(--red); box-shadow:0 0 12px rgba(230,57,70,0.3); }
+  .player-chip.done { border-color:rgba(42,157,143,0.4); background:rgba(42,157,143,0.08); color:var(--green); }
+  .btn-next { width:100%; padding:16px; border-radius:10px; border:none; background:var(--red); color:white; font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:3px; cursor:pointer; transition:all 0.2s; box-shadow:0 0 20px rgba(230,57,70,0.3); display:none; }
+  .btn-next.visible { display:block; animation:fadeIn 0.3s ease; }
+  .btn-next:active { transform:scale(0.97); }
+  .btn-back { width:100%; padding:12px; border-radius:10px; border:1px solid var(--border); background:transparent; color:var(--muted); font-family:'Share Tech Mono',monospace; font-size:11px; letter-spacing:2px; cursor:pointer; margin-top:10px; transition:all 0.2s; }
+  .btn-back:active { color:var(--text); border-color:var(--text); }
+  .finish-content { text-align:center; max-width:380px; }
+  .finish-icon { font-size:60px; margin-bottom:20px; animation:spin 1s ease; }
+  @keyframes spin { from { transform:rotate(-10deg) scale(0); } to { transform:rotate(0) scale(1); } }
+  .finish-title { font-family:'Bebas Neue',sans-serif; font-size:48px; letter-spacing:4px; color:var(--text); margin-bottom:8px; }
+  .finish-sub { font-family:'Share Tech Mono',monospace; font-size:11px; letter-spacing:2px; color:var(--muted); margin-bottom:40px; }
+  .btn-restart { width:100%; padding:18px; border-radius:10px; border:2px solid var(--red); background:transparent; color:var(--red); font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:3px; cursor:pointer; transition:all 0.2s; }
+  .btn-restart:active { background:var(--red); color:white; }
+  .scanlines { position:fixed; inset:0; z-index:100; pointer-events:none; background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px); }
+  .corner-deco { position:fixed; width:40px; height:40px; z-index:1; pointer-events:none; }
+  .corner-deco.tl { top:16px; left:16px; border-top:2px solid rgba(230,57,70,0.3); border-left:2px solid rgba(230,57,70,0.3); }
+  .corner-deco.tr { top:16px; right:16px; border-top:2px solid rgba(230,57,70,0.3); border-right:2px solid rgba(230,57,70,0.3); }
+  .corner-deco.bl { bottom:16px; left:16px; border-bottom:2px solid rgba(230,57,70,0.3); border-left:2px solid rgba(230,57,70,0.3); }
+  .corner-deco.br { bottom:16px; right:16px; border-bottom:2px solid rgba(230,57,70,0.3); border-right:2px solid rgba(230,57,70,0.3); }
+</style>
+</head>
+<body>
+<div class="scanlines"></div>
+<div class="corner-deco tl"></div>
+<div class="corner-deco tr"></div>
+<div class="corner-deco bl"></div>
+<div class="corner-deco br"></div>
+
+<!-- SPLASH -->
+<div id="splashScreen" class="screen active">
+  <div class="logo-wrap">
+    <div class="bunker-title">BUNKER</div>
+    <div class="bunker-sub">☢ survival role game ☢</div>
+  </div>
+  <div class="warning-badge">⚠ NUCLEER THREAT DETECTED ⚠</div>
+  <div class="player-input-wrap">
+    <div class="input-label">O'YINCHILAR SONI</div>
+    <div class="player-count-display">
+      <div class="count-num" id="countDisplay">6</div>
+    </div>
+    <div class="count-controls">
+      <button class="count-btn" onclick="changeCount(-1)">−</button>
+      <div class="slider-wrap" style="flex:1">
+        <input type="range" id="playerSlider" min="2" max="16" value="6" oninput="updateCount(this.value)">
+      </div>
+      <button class="count-btn" onclick="changeCount(1)">+</button>
+    </div>
+    <button class="btn-start" onclick="startGame()">▶ O'YINNI BOSHLASH</button>
+  </div>
+</div>
+
+<!-- CATEGORIES -->
+<div id="categoryScreen" class="screen">
+  <div class="cat-header">
+    <div class="cat-step" id="catStep">KATEGORIYALAR</div>
+    <div class="cat-title">NIMA OCHILSIN?</div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    </div>
+  </div>
+  <div class="categories-grid" id="categoriesGrid"></div>
+</div>
+
+<!-- REVEAL -->
+<div id="revealScreen" class="screen">
+  <div class="reveal-wrap">
+    <div class="reveal-header">
+      <div class="reveal-cat" id="revealCatName"></div>
+      <div class="reveal-player-label" id="revealPlayerLabel"></div>
+    </div>
+    <div class="players-queue" id="playersQueue"></div>
+    <div class="big-card" id="bigCard" onclick="revealCard()">
+      <div class="card-hidden-state" id="cardHidden">
+        <span class="card-lock-icon">🔒</span>
+        <div class="card-tap-hint">BOSIB OCHISH</div>
+      </div>
+      <div id="cardRevealed" style="display:none; text-align:center;">
+        <span class="card-revealed-emoji" id="cardEmoji"></span>
+        <div class="card-value" id="cardValue"></div>
+      </div>
+    </div>
+    <button class="btn-next" id="btnNext" onclick="nextPlayer()">KEYINGI →</button>
+    <button class="btn-back" onclick="goToCategories()">← KATEGORIYALARGA QAYTISH</button>
+  </div>
+</div>
+
+<!-- FINISH -->
+<div id="finishScreen" class="screen">
+  <div class="finish-content">
+    <div class="finish-icon">☢️</div>
+    <div class="finish-title">O'YIN TUGADI!</div>
+    <div class="finish-sub">HAMMA KARTALAR KO'RSATILDI</div>
+    <div style="margin-bottom:30px; color:var(--muted); font-size:14px; line-height:1.6;">
+      Endi kim bunkerga kirishi va kimni tashqarida qoldirishni hal qiling...
+    </div>
+    <button class="btn-restart" onclick="restartGame()">↺ QAYTADAN O'YNASH</button>
+  </div>
+</div>
+
+<script>
+const DATA = {
+  kasb: { emoji:"💼", name:"KASB", items:["Neyroxirurg","Farrosh","Harbiy razvedkachi","Fermer","Tatu master","Psixolog","Elektr muhandisi","Bloger","Kimyogar","Veterinar","Arxitektor","Baliqchi","Oshpaz","Dorifor","O'qituvchi","Aviamexanik","Qo'riqchi","Sanitariya xodimi","Robotexnik","Ovchi","Gidrogeolog","Yadro fizigi","Muzikant","Sportchi (bokschi)","Sehrgar (fokuschi)","Sotuvchi","Haydovchi (avtobus)","Dala shifokori","Parranda boqadi","Bino quruvchi"] },
+  fobiya: { emoji:"😨", name:"FOBIYA", items:["Tor joylardan qo'rqish","Balandlikdan qo'rqish","Qorong'udan qo'rqish","Odamlardan qo'rqish","Mikroblardan qo'rqish","Qondan qo'rqish","Baland ovozdan qo'rqish","Sukunatdan qo'rqish","Uyqusirashdan qo'rqish","Kuchli yorug'dan qo'rqish","Yolg'iz qolishdan qo'rqish","Hasharotlardan qo'rqish","Muzdan qo'rqish","O'tdan qo'rqish","Suv ostida qolishdan qo'rqish","Qo'shnilarga ishonishdan qo'rqish","Qo'lini yuvmasdan ovqat yeyishdan qo'rqish","Soqolini olishdan qo'rqish","Sensorli ekranlardan qo'rqish","O'zining akssadosidan qo'rqish"] },
+  soglik: { emoji:"❤️", name:"SOG'LIQ", items:["To'liq sog'lom","Gipertoniya (yuqori qon bosimi)","Diabet (insulin kerak)","Surunkali migren","Ko'z muammosi (ko'zoynak kerak)","PTSD (ruhiy trauma)","Astma (nafas qisishi)","Surunkali uyqu yetishmasligi","Yurak ritmi buzilishi","Surunkali orqa og'rig'i","Allergiya (changga)","Immunitet zaifligi","Bosh miya chayqalishi (eski)","Tizza operatsiyasidan keyin","Yengil kardiomiopatiya","Qo'l panjasi singan (bitib kelayapti)","Surunkali stress","Qulog'i yomon eshitadi","Teri kasalligi (ekzema)","Tomir muammosi (varikoz)"] },
+  fakt: { emoji:"📋", name:"FAKT", items:["Hayotida biror marta ham yig'lamagan","3 ta tilni mukammal biladi","Sobiq milliy sportchi","5 yil yolg'iz tog'da yashagan","500+ odamga pul qarz bergan","Hech qachon uxlamasdan 3 kun o'tkazgan","Politsiyada o'z fayli bor (sababi noaniq)","O'z ixtirosi bilan patent olgan","Sehrgarlik trukini biladi va ko'rsatadi","Bir marta o'lgan va tirilgan (klinik o'lim)","Yashirin familiyasi bor","Hech qachon telefon ishlatmagan","Maxfiy jamiyat a'zosi bo'lgan","Prezident bilan bir stol atrofida o'tirgan","Umrida go'sht yemagan","Har kuni 50 km piyoda yuradi","O'z qo'li bilan uy qurgan","3 marta nikohda bo'lgan","Bolalar bilan tilini topadi, kattalar bilan yo'q","Hech qachon yolg'on gapirmagan (o'zi aytadi)"] },
+  bagaj: { emoji:"🎒", name:"BAGAJ", items:["Jarrohlik asboblari to'plami","1 yillik urug'lar to'plami","Survival knife va kompas","Kichik generator","Steril dori-darmonlar","Zaryadlangan noutbuk","Tozalash kimyoviy vositalari","3 oy oziq-ovqat zapasi","Qurol (litsenziyali)","Radiostantsiya (uzoq masofali)","Kitoblar to'plami (enciklopediya)","Gaz plitasi va gaz ballon","Katta birinchi yordam sumkasi","Uyg'ur choynak va choy (1 yillik)","Bolta va arra","Qo'lda yasalgan filtr (suv tozalash)","Baliq ovlash jihozlari","3 ta plash va chodirlar","Kimyoviy himoya kostyumi","Nima ekanligini o'zi ham bilmaydi (qutida)"] },
+  biologiya: { emoji:"🧬", name:"BIOLOGIYA", items:["Erkak, 22 yosh","Ayol, 35 yosh","Erkak, 48 yosh","Ayol, 28 yosh","Erkak, 60 yosh","Ayol, 19 yosh","Erkak, 33 yosh","Ayol, 55 yosh","Erkak, 41 yosh","Ayol, 26 yosh","Erkak, 15 yosh","Ayol, 70 yosh","Erkak, 29 yosh","Ayol, 44 yosh","Erkak, 52 yosh","Ayol, 31 yosh","Erkak, 67 yosh","Ayol, 23 yosh","Erkak, 38 yosh","Ayol, 49 yosh"] },
+  maxsus_imkoniyat: { emoji:"⚡", name:"MAXSUS IMKONIYAT", items:["Qorong'ida yaxshi ko'radi","Yolg'onni sezadi","Har narsani eslab qoladi","Tezda til o'rganadi","Og'riqni his qilmaydi","Har qanday qulfni ochadi","Hayvonlar bilan muloqot qiladi","Ko'z bilan masofani o'lchaydi","Biror narsadan elektr qiladi","Soatga qaramay vaqtni biladi","Odamlarni ko'z bilan taniydi","Suv ichida uzoq nafas ushlab turadi","Ovozidan odamni aldaydi","Uyqusiz 5 kun yashaydi","Tezkor hisob-kitob (kalkulyator)","Har qanday o'simlikni dori sifatida ishlatadi","Elektr tarmog'ini his qiladi","Yaqinlashayotgan xavfni sezadi","Ovozni uzoqdan eshitadi","Bir ko'rishda xarakter tahlil qiladi"] },
+  hobbi: { emoji:"🎯", name:"HOBBI", items:["Shaxmat o'ynash","Bog'bonlik","Gitara chalish","Video montaj","Kurash (judo)","She'r yozish","Baliq ovlash","Robot yasash","Pishirish (professional darajada)","Arxeologik qazuv","Rasm chizish","Tog' tirmashish","Hayvon boqish","Radio eshitish va tahlil qilish","Eski soatlarni ta'mirlash","Yog'ochdan narsalar yasash","Qo'shiq aytish","Parazyut bilan sakrash","Taxta o'ymakorlik","Yulduzlarni kuzatish"] }
+};
+
+const CATEGORIES = ["kasb","fobiya","soglik","fakt","bagaj","biologiya","maxsus_imkoniyat","hobbi"];
+let playerCount=6, currentPlayerIndex=0, completedCats=[], assignedCards={}, cardRevealed=false;
+
+function updateCount(val) { playerCount=parseInt(val); document.getElementById('countDisplay').textContent=playerCount; document.getElementById('playerSlider').value=playerCount; }
+function changeCount(delta) { updateCount(Math.min(16,Math.max(2,playerCount+delta))); }
+function showScreen(id) { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+
+function startGame() {
+  completedCats=[]; assignedCards={}; currentPlayerIndex=0;
+  renderCategories(); showScreen('categoryScreen');
+}
+
+function renderCategories() {
+  const done=completedCats.length, total=CATEGORIES.length;
+  document.getElementById('progressFill').style.width=(done/total*100)+'%';
+  document.getElementById('catStep').textContent=`${done} / ${total} KATEGORIYA`;
+  const grid=document.getElementById('categoriesGrid');
+  grid.innerHTML='';
+  const nextToDo=CATEGORIES.find(c=>!completedCats.includes(c));
+  CATEGORIES.forEach(cat=>{
+    const info=DATA[cat], isDone=completedCats.includes(cat), isNext=cat===nextToDo&&!isDone;
+    const btn=document.createElement('div');
+    btn.className='cat-btn'+(isDone?' completed':'')+(isNext?' active-cat':'');
+    btn.innerHTML=`${isDone?'<div class="checkmark">✓</div>':''}<span class="cat-btn-emoji">${info.emoji}</span><span class="cat-btn-name">${info.name}</span><span class="cat-btn-status">${isDone?'✓ TUGADI':isNext?'▶ HOZIR':'KUTILMOQDA'}</span>`;
+    if(!isDone&&isNext) btn.onclick=()=>openCategory(cat);
+    grid.appendChild(btn);
+  });
+}
+
+function openCategory(catKey) {
+  currentPlayerIndex=0; cardRevealed=false;
+  const pool=[...DATA[catKey].items];
+  for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
+  if(!assignedCards[catKey]) assignedCards[catKey]={};
+  for(let p=0;p<playerCount;p++) assignedCards[catKey][p]=pool[p%pool.length];
+  renderRevealScreen(catKey); showScreen('revealScreen');
+}
+
+function renderRevealScreen(catKey) {
+  const info=DATA[catKey];
+  document.getElementById('revealCatName').textContent=info.emoji+'  '+info.name;
+  document.getElementById('revealPlayerLabel').textContent=`O'YINCHI #${currentPlayerIndex+1}`;
+  const queue=document.getElementById('playersQueue');
+  queue.innerHTML='';
+  for(let i=0;i<playerCount;i++){
+    const chip=document.createElement('div');
+    chip.className='player-chip'+(i===currentPlayerIndex?' current':i<currentPlayerIndex?' done':'');
+    chip.textContent=`#${i+1}`; queue.appendChild(chip);
+  }
+  const chips=queue.querySelectorAll('.player-chip');
+  if(chips[currentPlayerIndex]) chips[currentPlayerIndex].scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+  resetCard();
+  document.getElementById('revealScreen').dataset.catKey=catKey;
+}
+
+function resetCard() {
+  const card=document.getElementById('bigCard');
+  card.className='big-card'; card.onclick=revealCard;
+  document.getElementById('cardHidden').style.display='block';
+  document.getElementById('cardRevealed').style.display='none';
+  document.getElementById('btnNext').classList.remove('visible');
+  cardRevealed=false;
+}
+
+function revealCard() {
+  if(cardRevealed) return; cardRevealed=true;
+  const catKey=document.getElementById('revealScreen').dataset.catKey;
+  const value=assignedCards[catKey][currentPlayerIndex];
+  const info=DATA[catKey];
+  document.getElementById('cardHidden').style.display='none';
+  document.getElementById('cardRevealed').style.display='block';
+  document.getElementById('cardEmoji').textContent=info.emoji;
+  document.getElementById('cardValue').textContent=value;
+  const card=document.getElementById('bigCard');
+  card.classList.add('revealed'); card.onclick=null;
+  document.getElementById('btnNext').classList.add('visible');
+  if(navigator.vibrate) navigator.vibrate(50);
+}
+
+function nextPlayer() {
+  const catKey=document.getElementById('revealScreen').dataset.catKey;
+  currentPlayerIndex++;
+  if(currentPlayerIndex>=playerCount){
+    completedCats.push(catKey);
+    if(completedCats.length>=CATEGORIES.length){ showScreen('finishScreen'); return; }
+    renderCategories(); showScreen('categoryScreen');
+  } else {
+    document.getElementById('revealPlayerLabel').textContent=`O'YINCHI #${currentPlayerIndex+1}`;
+    const chips=document.getElementById('playersQueue').querySelectorAll('.player-chip');
+    chips.forEach((c,i)=>{ c.className='player-chip'+(i===currentPlayerIndex?' current':i<currentPlayerIndex?' done':''); });
+    if(chips[currentPlayerIndex]) chips[currentPlayerIndex].scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+    resetCard();
+  }
+}
+
+function goToCategories() { renderCategories(); showScreen('categoryScreen'); }
+function restartGame() { completedCats=[]; assignedCards={}; currentPlayerIndex=0; showScreen('splashScreen'); }
+</script>
+</body>
+</html>
